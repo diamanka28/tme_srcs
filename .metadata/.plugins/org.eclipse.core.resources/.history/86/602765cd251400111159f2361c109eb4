@@ -1,0 +1,50 @@
+package srcs.securite;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+
+public class ChannelBasic implements Channel{
+
+	private final Socket connexion;
+	
+	public ChannelBasic(Socket connex) {
+		this.connexion = connex;
+	}
+	@Override
+	public void send(byte[] bytesArray) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public byte[] recv() throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public InetAddress getRemoteHost() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getRemotePort() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public InetAddress getLocalHost() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getLocalPort() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+}

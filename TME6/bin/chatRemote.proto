@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package srcs.chat;
+
+option java_multiple_files = true;
+
+message SubscribeRequest{
+	string pseudo = 1;
+	string ip_host = 2;
+	int32 port = 3;
+}
+message SubscribeResponse{
+	bool status = 1;
+}
+
+message UnsubscribeRequest{
+	string pseudo = 1;
+}
+message Empty{}
+
+message SendRequest{
+	string pseudo = 1;
+	string message = 2;
+}
+message SendResponse{
+	int32 nbUsers = 1;
+}
+
+message ListResponse{
+	repeated string pseudos = 1;
+}
+message ChatMessage{
+	string sender = 1;
+  	string content = 2;
+}
+
+//service du serveur
+service ChatService{
+	rpc subscribe(SubscribeRequest) returns(SubscribeResponse);
+	rpc unsubscribe(UnsubscribeRequest) returns(Empty);
+	rpc sendMessage(SendRequest) returns(SendResponse);
+	rpc listChat(Empty) returns(ListResponse);
+}
+
+// service côté client pour faire parvenir le message au client
+service MessageService {
+  rpc newMessage(ChatMessage) returns (Empty);
+}
+
+

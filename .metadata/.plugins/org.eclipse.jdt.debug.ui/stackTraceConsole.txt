@@ -1,0 +1,14 @@
+Voici les principales notions pratiques indispensables pour mener à bien l'épreuve :
+   - savoir mettre en place un projet Eclipse en conformité avec les règles décrites dans le document modalité des tmes.
+   - savoir situer le chemin absolu du workspace sur la session Linux
+   - savoir exécuter un test Junit dans Eclipse
+   - savoir déclarer un package, une classe, une interface, une enum, une annotation dans un projet éclipse
+   - savoir modifier le build path (classpath ou modulepath)
+   - savoir utiliser les raccourcis claviers usuels : ctrl+shift+o (pour les imports), ctrl+espace (autocompletion), ctrl+shift+c (commenter/decommenter), ctrl-s (sauvegarder), ctrl-i (indenter)
+   - savoir utiliser le menu de génération automatique de code source : alt+shift+s puis :
+       * "Override/Implement methods..." --> permet de sélectionner les méthodes des super type que l'on souhaite redéfinir
+       * "Generate Getter and Setter" -> permet de générer les accesseurs
+        * "Generate hashcode() and equals()" --> permet d'avoir une version de equals en sélectionnant les attributs sur lequel définir l'égalité logique
+    - savoir utiliser le debugger de Eclipse (facultatif, mais peut être un gros plus)
+
+Il serait dommage de perdre du temps à cause d'un manque de maîtrise de votre environnement de travail. Entraînez-vous.

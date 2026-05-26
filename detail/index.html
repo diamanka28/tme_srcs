@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>React JS</title>
+    </head>
+    <body>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px  auto;
+                max-width: 600px;
+                background-color: #f9f9f9;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+            h1 {
+                color: #4CAF50;
+            }
+            h2 {
+                color: #2196F3;
+            }
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+            li {
+                margin: 5px 0;
+                padding: 5px;
+            }
+        </style>
+        <div id="root"></div>
+        
+        <!-- React ReactDom et babel-->
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+        <script type="text/babel">
+            function banner(){
+                return (<div> Bienvenue sur React JS </div>)
+            }
+            function myComponent(){
+                return (<h1> Mon premier composant </h1>)
+            }
+            function Cart() {
+                const monsteraPrice = 8
+                const ivyPrice = 10
+                const flowerPrice = 15
+                return (
+                    <div>
+                        <h2>Panier</h2>
+                        <ul>
+                            <li>Monstera : {monsteraPrice}€</li>
+                            <li>Lierre : {ivyPrice}€</li>
+                            <li>Fleurs : {flowerPrice}€</li>
+                        </ul>
+                        Total : {monsteraPrice + ivyPrice + flowerPrice }€
+                    </div>
+                )
+            }
+        
+            ReactDOM.render(
+                <div> 
+                    {myComponent()}
+                    {banner()}
+                    <Cart />
+                </div>,
+                document.getElementById('root')
+            );
+        </script>
+    </body>
+</html>

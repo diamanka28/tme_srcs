@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;rev.rmi&apos; to &apos;rev.rmi.task&apos;&#x0A;- Original project: &apos;Rev_Exam2&apos;&#x0A;- Original element: &apos;Rev_Exam2/src/rev.rmi&apos;&#x0A;- Renamed element: &apos;Rev_Exam2/src/rev.rmi.task&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" description="Rename package &apos;rev.rmi&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src&lt;rev.rmi" name="rev.rmi.task" qualified="false" references="true" stamp="1777590054950" textual="false" version="1.0"/>
+</session>

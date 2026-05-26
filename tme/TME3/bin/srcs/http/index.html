@@ -1,0 +1,234 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define BUFFER_SIZE 516 
+#define SERVER_IP "127.0.0.1"
+#define TIMEOUT_SECONDS 5 
+#define MAX_ATTEMPTS 3
+#define OPCODE_RRQ 1
+#define OPCODE_WRQ 2
+#define OPCODE_DATA 3
+#define OPCODE_ACK 4
+#define OPCODE_ERROR 5
+
+// Structure de la requête RRQ/WRQ
+struct tftp_request {
+    unsigned short opcode;
+    char filename[BUFFER_SIZE - 2];
+};
+
+// Structure du paquet DATA
+struct tftp_data_packet {
+    unsigned short opcode;
+    unsigned short block_num;
+    char data[BUFFER_SIZE - 4];
+};
+
+// Structure du paquet ACK
+struct tftp_ack_packet {
+    unsigned short opcode;
+    unsigned short block_num;
+};
+
+void die(char *s) {
+    perror(s);
+    exit(1);
+}
+
+// Initialisation du socket
+int init_socket(struct sockaddr_in *si_server, int server_port) {
+    int socket_fd;
+    if ((socket_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+        die("socket");
+    }
+
+    memset((char *)si_server, 0, sizeof(*si_server));
+    si_server->sin_family = AF_INET;
+    si_server->sin_port = htons(server_port);
+    si_server->sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind(socket_fd, (struct sockaddr *)si_server, sizeof(*si_server)) == -1) {
+        die("bind");
+    }
+
+    return socket_fd;
+}
+
+// Réception de la requête RRQ/WRQ
+void receive_request(int socket_fd, struct sockaddr_in *si_client, struct tftp_request *request) {
+    socklen_t slen = sizeof(*si_client);
+    int bytes_received = recvfrom(socket_fd, request, sizeof(*request), 0, (struct sockaddr *)si_client, &slen);
+    if (bytes_received == -1) {
+        die("recvfrom()");
+    }
+}
+
+// Envoi du paquet DATA
+void send_data(int socket_fd, struct sockaddr_in *si_client, struct tftp_data_packet *data_packet, int data_size) {
+    if (sendto(socket_fd, data_packet, data_size, 0, (struct sockaddr *)si_client, sizeof(*si_client)) == -1) {
+        die("sendto()");
+    }
+}
+
+// Réception du paquet ACK
+void receive_ack(int socket_fd, struct sockaddr_in *si_client, struct tftp_ack_packet *ack_packet) {
+    socklen_t slen = sizeof(*si_client);
+    int bytes_received = recvfrom(socket_fd, ack_packet, sizeof(*ack_packet), 0, (struct sockaddr *)si_client, &slen);
+    if (bytes_received == -1) {
+        die("recvfrom()");
+    }
+}
+
+// Envoi du paquet ACK
+void send_ack(int socket_fd, struct sockaddr_in *si_client, unsigned short block_num) {
+    struct tftp_ack_packet ack_packet;
+    ack_packet.opcode = htons(OPCODE_ACK);
+    ack_packet.block_num = htons(block_num);
+    if (sendto(socket_fd, &ack_packet, sizeof(ack_packet), 0, (struct sockaddr *)si_client, sizeof(*si_client)) == -1) {
+        die("sendto()");
+    }
+}
+
+// Fonction pour traiter une requête RRQ
+void process_rrq(int socket_fd, struct sockaddr_in *si_client, struct tftp_request *request) {
+    char *filename = request->filename;
+    printf("Requête de lecture reçue pour le fichier : %s\n", filename);
+
+    // Ouvrir le fichier demandé
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL) {
+        // En cas d'erreur, envoyer un paquet d'erreur au client
+        struct tftp_data_packet error_packet;
+        error_packet.opcode = htons(OPCODE_ERROR);
+        error_packet.block_num = htons(1); 
+        strcpy(error_packet.data, "File not found or access denied");
+        send_data(socket_fd, si_client, &error_packet, strlen("File not found or access denied") + 4);
+        fclose(file);
+        return;
+    }
+
+    // Lire et envoyer les données par blocs
+    struct tftp_data_packet data_packet;
+    int block_num = 1;
+    size_t bytes_read;
+    do {
+        bytes_read = fread(data_packet.data, 1, BUFFER_SIZE - 4, file);
+        if (bytes_read < 0) {
+            die("fread");
+        }
+        data_packet.opcode = htons(OPCODE_DATA);
+        data_packet.block_num = htons(block_num);
+        send_data(socket_fd, si_client, &data_packet, bytes_read + 4);
+
+        // Attendre le paquet ACK du client
+        struct tftp_ack_packet ack_packet;
+        receive_ack(socket_fd, si_client, &ack_packet);
+        if (ack_packet.opcode != htons(OPCODE_ACK) || ack_packet.block_num != htons(block_num)) {
+            // Si le paquet ACK n'est pas conforme, réessayer
+            fclose(file);
+            return;
+        }
+        block_num++;
+    } while (bytes_read == BUFFER_SIZE - 4);
+
+    fclose(file);
+}
+
+// Fonction pour traiter une requête WRQ
+void process_wrq(int socket_fd, struct sockaddr_in *si_client, struct tftp_request *request) {
+    char *filename = request->filename;
+    printf("Requête d'écriture reçue pour le fichier : %s\n", filename);
+
+    // Ouvrir le fichier pour écriture
+    FILE *file = fopen(filename, "wb");
+    if (file == NULL) {
+        // En cas d'erreur, envoyer un paquet d'erreur au client
+        struct tftp_data_packet error_packet;
+        error_packet.opcode = htons(OPCODE_ERROR);
+        error_packet.block_num = htons(1);
+        strcpy(error_packet.data, "Error opening file for writing");
+        send_data(socket_fd, si_client, &error_packet, strlen("Error opening file for writing") + 4);
+        fclose(file);
+        return;
+    }
+
+    // Envoyer le premier paquet ACK au client
+    send_ack(socket_fd, si_client, 0);
+
+    // Attendre les paquets DATA et les écrire dans le fichier
+    struct tftp_data_packet data_packet;
+    int block_num = 1;
+    while (1) {
+        receive_request(socket_fd, si_client, (struct tftp_request *)&data_packet);
+
+        // Vérifier le code d'opération
+        if (ntohs(data_packet.opcode) != OPCODE_DATA) {
+            printf("Unexpected packet opcode.\n");
+            fclose(file);
+            return;
+        }
+
+        // Vérifier le numéro de bloc
+        if (ntohs(data_packet.block_num) != block_num) {
+            printf("Unexpected block number.\n");
+            fclose(file);
+            return;
+        }
+
+        // Écrire les données dans le fichier
+        fwrite(data_packet.data, 1, strlen(data_packet.data), file);
+
+        // Envoyer un acquittement (ACK) au client
+        send_ack(socket_fd, si_client, block_num);
+
+        // Vérifier si c'est le dernier paquet de données
+        if (strlen(data_packet.data) < BUFFER_SIZE - 4) {
+            break;
+        }
+
+        block_num++;
+    }
+
+    fclose(file);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <port_number>\n", argv[0]);
+        exit(1);
+    }
+
+    int server_port = atoi(argv[1]);
+    if (server_port <= 0 || server_port > 65535) {
+        printf("Invalid port number.\n");
+        exit(1);
+    }
+
+    struct sockaddr_in si_server, si_client;
+    int socket_fd = init_socket(&si_server, server_port);
+
+    printf("Serveur TFTP démarré sur le port %d...\n", server_port);
+
+    while (1) {
+        struct tftp_request request;
+        receive_request(socket_fd, &si_client, &request);
+
+        // Traiter la requête RRQ
+        if (request.opcode == htons(OPCODE_RRQ)) {
+            process_rrq(socket_fd, &si_client, &request);
+        }
+        // Traiter la requête WRQ
+        else if (request.opcode == htons(OPCODE_WRQ)) {
+            process_wrq(socket_fd, &si_client, &request);
+        }
+    }
+
+    close(socket_fd);
+    return 0;
+}

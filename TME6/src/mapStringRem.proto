@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package srcs.map;
+
+option java_multiple_files=true;
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+message EntryString{
+	string key = 1;
+	string value = 2;
+}
+
+service MapStringRemote{
+	rpc get(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+	rpc put(EntryString) returns(google.protobuf.Empty);
+}

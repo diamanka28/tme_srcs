@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+package srcs.inventory;
+
+message Product{
+	string id = 1;
+	string nom = 2;
+	int32 quantite = 3;
+	double prix = 4;
+}
+
+message StockChange {
+	string id = 1;
+	int32 change = 2;
+}
+
+service InventoryService {
+	rpc getProduct(google.protobuf.StringValue) returns (Product);
+	rpc listProduct(google.protobuf.Empty) returns (stream Product);
+	rpc updateStock(StockChange) returns (Product);
+}

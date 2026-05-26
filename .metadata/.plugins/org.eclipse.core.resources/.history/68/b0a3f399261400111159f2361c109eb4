@@ -1,0 +1,53 @@
+package srcs.securite;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class ChannelBasic implements Channel{
+
+	private final DatagramSocket connexion;
+	
+	public ChannelBasic(DatagramSocket connex) {
+		this.connexion = connex;
+	}
+	@Override
+	public void send(byte[] bytesArray) throws IOException {
+		// TODO Auto-generated method stub
+		InetAddress adresse = InetAddress.getByName("localhost");
+		DatagramPacket packet = new DatagramPacket(bytesArray, bytesArray.length, adresse, 9090);
+		this.connexion.send(packet);
+	}
+
+	@Override
+	public byte[] recv() throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public InetAddress getRemoteHost() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getRemotePort() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public InetAddress getLocalHost() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getLocalPort() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+}

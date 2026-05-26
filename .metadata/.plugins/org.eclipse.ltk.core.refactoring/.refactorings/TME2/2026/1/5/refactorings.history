@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move package &apos;srcs.interpretor&apos; to &apos;TME2/src&apos;&#x0A;- Original project: &apos;TME2&apos;&#x0A;- Destination element: &apos;TME2/src&apos;&#x0A;- Original element: &apos;TME2/test/srcs.interpretor&apos;&#x0A;- Update references to refactored element" description="Move package" destination="/src" element1="/test&lt;srcs.interpretor" flags="589830" fragments="1" id="org.eclipse.jdt.ui.move" policy="org.eclipse.jdt.ui.movePackages" stamp="1769727649466" version="1.0"/>
+</session>
